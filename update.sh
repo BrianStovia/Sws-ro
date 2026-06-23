@@ -150,21 +150,7 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     # Restore WARP SOCKS5 proxy if it was enabled
     if [ "$warp_enabled" -eq 1 ]; then
         echo "Restoring Cloudflare WARP proxy outbound..."
-        python3 -c '
-import re
-path = "/usr/local/etc/v2ray/config.json"
-try:
-    with open(path, "r") as f:
-        text = f.read()
-    pattern = r"\{\s*\"protocol\"\s*:\s*\"freedom\"\s*,\s*\"settings\"\s*:\s*\{\s*\}\s*,\s*\"tag\"\s*:\s*\"direct\"\s*\}"
-    replacement = "{\n      \"protocol\": \"socks\",\n      \"settings\": {\n        \"servers\": [\n          {\n            \"address\": \"127.0.0.1\",\n            \"port\": 40000\n          }\n        ]\n      },\n      \"tag\": \"direct\"\n    }"
-    new_text, count = re.subn(pattern, replacement, text)
-    if count > 0:
-        with open(path, "w") as f:
-            f.write(new_text)
-except Exception as e:
-    print("Error:", e)
-'
+        python3 /usr/local/sbin/toggle_warp.py enable
     fi
     
     # Verify configuration syntax
