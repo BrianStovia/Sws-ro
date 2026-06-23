@@ -137,25 +137,29 @@ class ConnectionHandler(threading.Thread):
         if not self.clientClosed:
             try:
                 self.client.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            try:
                 self.client.close()
             except:
                 pass
-            finally:
-                self.clientClosed = True
+            self.clientClosed = True
 
         if not self.targetClosed:
             try:
-                try:
-                    local_port = self.target.getsockname()[1]
-                    remove_ws_mapping(local_port)
-                except:
-                    pass
+                local_port = self.target.getsockname()[1]
+                remove_ws_mapping(local_port)
+            except:
+                pass
+            try:
                 self.target.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
+            try:
                 self.target.close()
             except:
                 pass
-            finally:
-                self.targetClosed = True
+            self.targetClosed = True
 
     def run(self):
         try:
