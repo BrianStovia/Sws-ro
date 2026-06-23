@@ -105,6 +105,11 @@ if ! command -v netdata &> /dev/null; then
     fi
 fi
 
+# Clean up any leftover broken store_gzipped directives from previous runs
+if [ -f "/etc/nginx/nginx.conf" ]; then
+    sed -i '/store_gzipped on;/d' /etc/nginx/nginx.conf
+fi
+
 # Ensure Nginx Netdata configuration is added
 if [ -f "/etc/nginx/nginx.conf" ] && ! grep -q "location /netdata/" /etc/nginx/nginx.conf; then
     echo -e "${blue}Menambahkan konfigurasi Netdata ke Nginx...${NC}"
