@@ -625,8 +625,18 @@ END
 systemctl daemon-reload
 
 
-rm -f /usr/local/etc/v2ray/config.json
-get_file "config.json" "/usr/local/etc/v2ray/config.json"
+# Backup and merge existing config if it exists
+if [ -f "/usr/local/etc/v2ray/config.json" ]; then
+    cp /usr/local/etc/v2ray/config.json /usr/local/etc/v2ray/config.json.bak
+    get_file "config.json" "/usr/local/etc/v2ray/config.json"
+    
+    # Download merge_config.py and run it to restore accounts
+    get_file "merge_config.py" "/usr/local/sbin/merge_config.py"
+    chmod +x /usr/local/sbin/merge_config.py
+    python3 /usr/local/sbin/merge_config.py
+else
+    get_file "config.json" "/usr/local/etc/v2ray/config.json"
+fi
 
 
 
