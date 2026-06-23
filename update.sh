@@ -25,9 +25,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 get_file() {
     local source_name="$1"
     local dest_path="$2"
-    wget -q -O "${dest_path}" "${hosting}/${source_name}"
+    local cache_buster="?v=$(date +%s)"
+    wget -q -O "${dest_path}" "${hosting}/${source_name}${cache_buster}"
     if [ $? -ne 0 ]; then
-        wget -q -O "${dest_path}" "${hosting}/file/${source_name}"
+        wget -q -O "${dest_path}" "${hosting}/file/${source_name}${cache_buster}"
         if [ $? -ne 0 ]; then
             echo -e "${red}Error: Gagal mengunduh ${source_name} dari hosting!${NC}"
             return 1

@@ -18,6 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 get_file() {
     local source_name="$1"
     local dest_path="$2"
+    local cache_buster="?v=$(date +%s)"
     
     if [ -f "${SCRIPT_DIR}/${source_name}" ]; then
         echo "Using local file ${source_name}..."
@@ -27,10 +28,10 @@ get_file() {
         cp "${SCRIPT_DIR}/file/${source_name}" "${dest_path}"
     else
         echo "Downloading ${source_name} from hosting..."
-        wget -q -O "${dest_path}" "${hosting}/${source_name}"
+        wget -q -O "${dest_path}" "${hosting}/${source_name}${cache_buster}"
         if [ $? -ne 0 ]; then
             echo "Downloading ${source_name} from hosting/file..."
-            wget -q -O "${dest_path}" "${hosting}/file/${source_name}"
+            wget -q -O "${dest_path}" "${hosting}/file/${source_name}${cache_buster}"
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to download ${source_name} from hosting!"
                 exit 1
