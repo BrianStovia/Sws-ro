@@ -133,12 +133,47 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     # Backup existing config
     cp /usr/local/etc/v2ray/config.json /usr/local/etc/v2ray/config.json.bak
     
+    # Check if WARP SOCKS5 proxy was enabled in backup config
+    warp_enabled=0
+    if grep -q '"port": 40000' /usr/local/etc/v2ray/config.json.bak 2>/dev/null; then
+        warp_enabled=1
+    fi
+    
     # Download clean config.json
     get_file "config.json" "/usr/local/etc/v2ray/config.json"
     
     # Run merge script to preserve existing accounts
     if [ -f "/usr/local/sbin/merge_config.py" ]; then
         python3 /usr/local/sbin/merge_config.py
+    fi
+    
+    # Restore WARP SOCKS5 proxy if it was enabled
+    if [ "$warp_enabled" -eq 1 ]; then
+        echo "Restoring Cloudflare WARP proxy outbound..."
+        python3 -c '
+with open("/usr/local/etc/v2ray/config.json", "r") as f:
+    text = f.read()
+target = """    {
+      "protocol": "freedom",
+      "settings": {},
+      "tag": "direct"
+    }"""
+replacement = """    {
+      "protocol": "socks",
+      "settings": {
+        "servers": [
+          {
+            "address": "127.0.0.1",
+            "port": 40000
+          }
+        ]
+      },
+      "tag": "direct"
+    }"""
+if target in text:
+    with open("/usr/local/etc/v2ray/config.json", "w") as f:
+        f.write(text.replace(target, replacement))
+'
     fi
     
     # Verify configuration syntax

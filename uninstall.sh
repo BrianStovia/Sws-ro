@@ -39,6 +39,7 @@ services=(
     "stunnel4"
     "dnstt"
     "client-sldns"
+    "warp-svc"
 )
 
 echo -e "${blue}[1/8] Menghentikan dan menonaktifkan layanan...${NC}"
@@ -214,7 +215,7 @@ done
 
 # 8. Purge installed packages (Optional, keeps core packages to avoid breaking dependencies)
 echo -e "${blue}[8/8] Menghapus paket yang terpasang...${NC}"
-apt-get purge -y sslh dropbear dante-server microsocks stunnel4 squid netdata speedtest-cli &>/dev/null
+apt-get purge -y sslh dropbear dante-server microsocks stunnel4 squid netdata speedtest-cli cloudflare-warp &>/dev/null
 apt-get autoremove -y &>/dev/null
 
 echo -e "${yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
