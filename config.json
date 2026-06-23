@@ -1,0 +1,309 @@
+{
+  "log": {
+    "loglevel": "info",
+    "access": "/var/log/v2ray/access.log"
+  },
+  "api": {
+    "services": [
+      "HandlerService",
+      "LoggerService",
+      "StatsService"
+    ],
+    "tag": "api"
+  },
+  "stats": {},
+  "policy": {
+    "levels": {
+      "0": {
+        "handshake": 2,
+        "connIdle": 60,
+        "statsUserUplink": true,
+        "statsUserDownlink": true
+      }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true,
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10085,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api"
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 2,
+      "protocol": "vless",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+            #vless
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/vless"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 4,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "alterId": 0
+            #vmess
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/vmess"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 3,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "alterId": 0
+            #vmess
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 5,
+      "protocol": "trojan",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+            #trojan
+          }
+        ],
+        "udp": true
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/trojan-ws"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 7,
+      "protocol": "vless",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+            #vless
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "vless-grpc"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 8,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "alterId": 0
+            #vmess
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "vmess-grpc"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 9,
+      "protocol": "trojan",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+            #trojan
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "trojan-grpc"
+        }
+      }
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": 8443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "flow": "xtls-rprx-vision"
+            #reality
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "REALITY_DEST",
+          "xver": 0,
+          "serverNames": [
+            REALITY_SNIS
+          ],
+          "privateKey": "REALITY_PRIVATE_KEY",
+          "minClientVer": "",
+          "shortIds": [
+            "REALITY_SHORT_ID"
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {},
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:openai",
+          "geosite:netflix",
+          "geosite:disney",
+          "geosite:primevideo",
+          "geosite:category-games",
+          "domain:bi.go.id",
+          "domain:dana.id",
+          "domain:ovo.id",
+          "domain:linkaja.id",
+          "domain:gopay.co.id",
+          "domain:gojek.com",
+          "domain:shopee.co.id",
+          "domain:shopeepay.co.id",
+          "domain:binance.com",
+          "domain:binance.me",
+          "geosite:binance",
+          "domain:bybit.com",
+          "domain:bybit.net",
+          "domain:bybit.org",
+          "domain:okx.com",
+          "domain:okx-dns.com",
+          "domain:kucoin.com",
+          "domain:bitget.com",
+          "domain:mexc.com",
+          "domain:gate.io",
+          "domain:htx.com",
+          "domain:huobi.com",
+          "domain:kraken.com",
+          "domain:coinbase.com",
+          "domain:crypto.com",
+          "domain:pulsaku.co.id",
+          "domain:pulsaku.id",
+          "domain:orderkuota.com",
+          "domain:portalpulsa.com",
+          "domain:perplexity.ai",
+          "domain:anthropic.com",
+          "domain:claude.ai",
+          "regexp:\\.go\\.id$"
+        ]
+      },
+      {
+        "type": "field",
+        "ip": [
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.0.0.0/24",
+          "192.0.2.0/24",
+          "192.168.0.0/16",
+          "198.18.0.0/15",
+          "198.51.100.0/24",
+          "203.0.113.0/24",
+          "::1/128",
+          "fc00::/7",
+          "fe80::/10"
+        ],
+        "outboundTag": "blocked"
+      },
+      {
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api",
+        "type": "field"
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ]
+      }
+    ]
+  }
+}
