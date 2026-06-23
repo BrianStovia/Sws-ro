@@ -188,6 +188,8 @@ files=(
     "/usr/local/sbin/vpn_telegram_bot.py"
     "/usr/local/sbin/xp"
     "/usr/local/sbin/v2ray-watchdog"
+    "/usr/local/sbin/update"
+    "/usr/bin/update"
     "/etc/issue.net"
     "/root/.ip"
 )

@@ -791,6 +791,12 @@ get_file "ssh-limit" "/usr/local/sbin/ssh-limit"
 chmod +x /usr/local/sbin/ssh-limit
 ln -sf /usr/local/sbin/ssh-limit /usr/bin/ssh-limit
 
+# Setup Update Script
+get_file "update.sh" "/usr/local/sbin/update"
+chmod +x /usr/local/sbin/update
+ln -sf /usr/local/sbin/update /usr/bin/update
+
+
 # Systemd Service and Timer for ssh-limit
 cat > /etc/systemd/system/ssh-limit.service << END
 [Unit]
