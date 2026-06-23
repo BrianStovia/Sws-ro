@@ -181,6 +181,21 @@ systemctl restart badvpn-7200 &>/dev/null
 systemctl restart badvpn-7300 &>/dev/null
 systemctl restart badvpn &>/dev/null
 systemctl restart v2ray &>/dev/null
+# Check if V2Ray running successfully, if not auto rollback to pre-update backup
+sleep 1.5
+if ! systemctl is-active --quiet v2ray; then
+    echo -e "${red}Error: Layanan V2Ray gagal berjalan dengan konfigurasi baru!${NC}"
+    if [ -f "/root/v2ray_backup_before_update.json" ]; then
+        echo -e "${blue}Mengembalikan konfigurasi cadangan secara otomatis...${NC}"
+        cp /root/v2ray_backup_before_update.json /usr/local/etc/v2ray/config.json
+        systemctl restart v2ray &>/dev/null
+        if systemctl is-active --quiet v2ray; then
+            echo -e "${green}Berhasil memulihkan layanan V2Ray menggunakan cadangan sebelum update!${NC}"
+        else
+            echo -e "${red}Fatal: V2Ray tetap gagal berjalan bahkan setelah memulihkan cadangan!${NC}"
+        fi
+    fi
+fi
 systemctl restart nginx &>/dev/null
 systemctl restart sslh &>/dev/null
 systemctl restart proxy &>/dev/null
