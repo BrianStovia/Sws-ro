@@ -141,53 +141,6 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
         python3 /usr/local/sbin/merge_config.py
     fi
     
-    # Restore Reality keypair from backup or reality.conf
-    if [ -f "/usr/local/etc/v2ray/reality.conf" ]; then
-        source /usr/local/etc/v2ray/reality.conf
-        reality_dest="$REALITY_DEST"
-        reality_sni="$REALITY_SNI"
-        priv_key="$REALITY_PRIV"
-        short_id="$REALITY_SID"
-    else
-        # Strip comments first to let jq parse the backup config
-        clean_bak=$(grep -v -E '^[[:space:]]*(#|//)' /usr/local/etc/v2ray/config.json.bak 2>/dev/null)
-        reality_dest=$(echo "$clean_bak" | jq -r '.inbounds[] | select(.protocol=="vless" and .streamSettings.security=="reality") | .streamSettings.realitySettings.dest' 2>/dev/null)
-        priv_key=$(echo "$clean_bak" | jq -r '.inbounds[] | select(.protocol=="vless" and .streamSettings.security=="reality") | .streamSettings.realitySettings.privateKey' 2>/dev/null)
-        short_id=$(echo "$clean_bak" | jq -r '.inbounds[] | select(.protocol=="vless" and .streamSettings.security=="reality") | .streamSettings.realitySettings.shortIds[0]' 2>/dev/null)
-        
-        # Parse SNIs as a raw comma-separated string
-        snis_json=$(echo "$clean_bak" | jq -c '.inbounds[] | select(.protocol=="vless" and .streamSettings.security=="reality") | .streamSettings.realitySettings.serverNames' 2>/dev/null)
-        reality_sni=$(echo "$snis_json" | tr -d '[]"' | tr '\n' ',' | sed 's/,$//')
-    fi
-    
-    # If keys are missing, null, or corrupted placeholders, generate new keypair
-    if [ -z "$priv_key" ] || [ "$priv_key" = "null" ] || [ "$priv_key" = "REALITY_PRIVATE_KEY" ]; then
-        echo "Reality keys not found or invalid. Generating fresh keypair..."
-        reality_keys=$(/usr/local/bin/xray x25519)
-        priv_key=$(echo "$reality_keys" | grep "PrivateKey:" | awk '{print $2}')
-        pub_key=$(echo "$reality_keys" | grep "PublicKey" | awk '{print $3}')
-        short_id=$(head /dev/urandom | tr -dc 'a-f0-9' | head -c 16)
-        reality_sni="yahoo.com,www.yahoo.com"
-        reality_dest="yahoo.com:443"
-        
-        # Save to reality.conf for future updates
-        cat > /usr/local/etc/v2ray/reality.conf << END
-REALITY_PORT=8443
-REALITY_DEST=${reality_dest}
-REALITY_SNI=${reality_sni}
-REALITY_PRIV=${priv_key}
-REALITY_PUB=${pub_key}
-REALITY_SID=${short_id}
-END
-    fi
-    
-    # Run replacements on the fresh config.json
-    reality_snis_json=$(echo "${reality_sni:-yahoo.com}" | sed 's/,/","/g' | sed 's/^/"/' | sed 's/$/"/')
-    sed -i "s|REALITY_DEST|${reality_dest:-yahoo.com:443}|g" /usr/local/etc/v2ray/config.json
-    sed -i "s|REALITY_SNIS|${reality_snis_json}|g" /usr/local/etc/v2ray/config.json
-    sed -i "s/REALITY_PRIVATE_KEY/${priv_key}/g" /usr/local/etc/v2ray/config.json
-    sed -i "s/REALITY_SHORT_ID/${short_id}/g" /usr/local/etc/v2ray/config.json
-    
     # Verify configuration syntax
     if [ -f "/usr/local/bin/xray" ]; then
         /usr/local/bin/xray test -config /usr/local/etc/v2ray/config.json &>/dev/null

@@ -628,34 +628,7 @@ systemctl daemon-reload
 rm -f /usr/local/etc/v2ray/config.json
 get_file "config.json" "/usr/local/etc/v2ray/config.json"
 
-# Configure VLESS Reality Server Keypair
-echo "Configuring Xray Reality..."
-reality_keys=$(/usr/local/bin/xray x25519)
-priv_key=$(echo "$reality_keys" | grep "PrivateKey:" | awk '{print $2}')
-pub_key=$(echo "$reality_keys" | grep "PublicKey" | awk '{print $3}')
-short_id=$(head /dev/urandom | tr -dc 'a-f0-9' | head -c 16)
 
-reality_sni="yahoo.com,www.yahoo.com"
-
-first_sni=$(echo "$reality_sni" | cut -d',' -f1)
-reality_dest="${first_sni}:443"
-
-cat > /usr/local/etc/v2ray/reality.conf << END
-REALITY_PORT=8443
-REALITY_DEST=${reality_dest}
-REALITY_SNI=${reality_sni}
-REALITY_PRIV=${priv_key}
-REALITY_PUB=${pub_key}
-REALITY_SID=${short_id}
-END
-
-# Convert comma-separated string to json format (e.g. "yahoo.com,www.yahoo.com" to "yahoo.com","www.yahoo.com")
-reality_snis_json=$(echo "$reality_sni" | sed 's/,/","/g' | sed 's/^/"/' | sed 's/$/"/')
-
-sed -i "s|REALITY_DEST|${reality_dest}|g" /usr/local/etc/v2ray/config.json
-sed -i "s|REALITY_SNIS|${reality_snis_json}|g" /usr/local/etc/v2ray/config.json
-sed -i "s/REALITY_PRIVATE_KEY/${priv_key}/g" /usr/local/etc/v2ray/config.json
-sed -i "s/REALITY_SHORT_ID/${short_id}/g" /usr/local/etc/v2ray/config.json
 
 # Setup NoobzVPNS
 clear
@@ -905,8 +878,7 @@ else
     iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port 5300
 fi
 
-# Open TCP port 8443 for Xray Reality
-iptables -A INPUT -p tcp --dport 8443 -j ACCEPT
+
 
 # Open UDP port 5300 for SlowDNS
 iptables -A INPUT -p udp --dport 5300 -j ACCEPT

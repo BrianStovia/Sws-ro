@@ -177,39 +177,6 @@
         "grpcSettings": {
           "serviceName": "trojan-grpc"
         }
-      }
-    },
-    {
-      "listen": "0.0.0.0",
-      "port": 8443,
-      "protocol": "vless",
-      "settings": {
-        "clients": [
-          {
-            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
-            "flow": "xtls-rprx-vision"
-            #reality
-          }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "tcp",
-        "security": "reality",
-        "realitySettings": {
-          "show": false,
-          "dest": "REALITY_DEST",
-          "xver": 0,
-          "serverNames": [
-            REALITY_SNIS
-          ],
-          "privateKey": "REALITY_PRIVATE_KEY",
-          "minClientVer": "",
-          "shortIds": [
-            "REALITY_SHORT_ID"
-          ]
-        }
-      }
     }
   ],
   "outbounds": [
