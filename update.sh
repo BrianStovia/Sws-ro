@@ -41,15 +41,24 @@ echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━�
 echo -e "$green              Updating Autoscript VPS/VPN               	$NC"
 echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
-# 1. Update install.sh and uninstall.sh
-echo -e "${blue}[1/6] Mengunduh script installer & uninstaller baru...${NC}"
+# 1. Auto Backup V2Ray Configuration
+if [ -f "/usr/local/etc/v2ray/config.json" ]; then
+    echo -e "${blue}[1/7] Mencadangkan akun V2Ray otomatis...${NC}"
+    cp /usr/local/etc/v2ray/config.json /root/v2ray_backup_before_update.json
+    echo -e "${green}Backup disimpan di /root/v2ray_backup_before_update.json${NC}"
+else
+    echo -e "${blue}[1/7] Tidak ada konfigurasi V2Ray untuk dicadangkan.${NC}"
+fi
+
+# 2. Update install.sh and uninstall.sh
+echo -e "${blue}[2/7] Mengunduh script installer & uninstaller baru...${NC}"
 get_file "install.sh" "/usr/local/sbin/install.sh"
 chmod +x /usr/local/sbin/install.sh
 get_file "uninstall.sh" "/usr/local/sbin/uninstall.sh"
 chmod +x /usr/local/sbin/uninstall.sh
 
-# 2. Update Menu Scripts
-echo -e "${blue}[2/6] Memperbarui menu sbin...${NC}"
+# 3. Update Menu Scripts
+echo -e "${blue}[3/7] Memperbarui menu sbin...${NC}"
 mkdir -p /usr/local/sbin
 cd /usr/local/sbin
 wget -q -O m.zip "${hosting}/main.zip"
@@ -66,8 +75,8 @@ if [ $? -eq 0 ]; then
 fi
 cd
 
-# 3. Update Binaries and Helper Scripts
-echo -e "${blue}[3/6] Memperbarui binari sistem...${NC}"
+# 4. Update Binaries and Helper Scripts
+echo -e "${blue}[4/7] Memperbarui binari sistem...${NC}"
 get_file "server" "/usr/bin/server"
 chmod +x /usr/bin/server
 get_file "proxy" "/usr/local/bin/proxy"
@@ -76,8 +85,8 @@ get_file "ssh-limit" "/usr/local/sbin/ssh-limit"
 chmod +x /usr/local/sbin/ssh-limit
 ln -sf /usr/local/sbin/ssh-limit /usr/bin/ssh-limit
 
-# 4. Update Configuration Files while preserving Reality Keys
-echo -e "${blue}[4/6] Memperbarui file konfigurasi...${NC}"
+# 5. Update Configuration Files while preserving Reality Keys
+echo -e "${blue}[5/7] Memperbarui file konfigurasi...${NC}"
 
 # Update UDP Custom configuration
 get_file "udp.json" "/etc/udp/config.json"
@@ -163,8 +172,8 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     fi
 fi
 
-# 5. Reload services
-echo -e "${blue}[5/6] Memulai ulang layanan...${NC}"
+# 6. Reload services
+echo -e "${blue}[6/7] Memulai ulang layanan...${NC}"
 systemctl daemon-reload
 systemctl restart udp-custom &>/dev/null
 systemctl restart badvpn-7100 &>/dev/null
@@ -187,8 +196,8 @@ if [ -f "/etc/systemd/system/vpn-bot.service" ]; then
     systemctl restart vpn-bot &>/dev/null
 fi
 
-# 6. Self Update update.sh
-echo -e "${blue}[6/6] Memperbarui script update...${NC}"
+# 7. Self Update update.sh
+echo -e "${blue}[7/7] Memperbarui script update...${NC}"
 get_file "update.sh" "/usr/local/sbin/update"
 chmod +x /usr/local/sbin/update
 ln -sf /usr/local/sbin/update /usr/bin/update
