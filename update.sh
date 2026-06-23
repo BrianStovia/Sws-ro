@@ -136,6 +136,11 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     # Download clean config.json
     get_file "config.json" "/usr/local/etc/v2ray/config.json"
     
+    # Run merge script to preserve existing accounts
+    if [ -f "/usr/local/sbin/merge_config.py" ]; then
+        python3 /usr/local/sbin/merge_config.py
+    fi
+    
     # Restore Reality keypair from backup or reality.conf
     if [ -f "/usr/local/etc/v2ray/reality.conf" ]; then
         source /usr/local/etc/v2ray/reality.conf
@@ -182,6 +187,15 @@ END
     sed -i "s|REALITY_SNIS|${reality_snis_json}|g" /usr/local/etc/v2ray/config.json
     sed -i "s/REALITY_PRIVATE_KEY/${priv_key}/g" /usr/local/etc/v2ray/config.json
     sed -i "s/REALITY_SHORT_ID/${short_id}/g" /usr/local/etc/v2ray/config.json
+    
+    # Verify configuration syntax
+    if [ -f "/usr/local/bin/xray" ]; then
+        /usr/local/bin/xray test -config /usr/local/etc/v2ray/config.json &>/dev/null
+        if [ $? -ne 0 ]; then
+            echo -e "${red}Error: Konfigurasi baru V2Ray tidak valid! Mengembalikan ke konfigurasi sebelumnya...${NC}"
+            cp /usr/local/etc/v2ray/config.json.bak /usr/local/etc/v2ray/config.json
+        fi
+    fi
 fi
 
 # 5. Reload services
