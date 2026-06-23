@@ -135,7 +135,7 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     
     # Check if WARP SOCKS5 proxy was enabled in backup config
     warp_enabled=0
-    if grep -q '"port": 40000' /usr/local/etc/v2ray/config.json.bak 2>/dev/null; then
+    if grep -q -E '"port"\s*:\s*40000' /usr/local/etc/v2ray/config.json.bak 2>/dev/null; then
         warp_enabled=1
     fi
     
@@ -151,28 +151,19 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     if [ "$warp_enabled" -eq 1 ]; then
         echo "Restoring Cloudflare WARP proxy outbound..."
         python3 -c '
-with open("/usr/local/etc/v2ray/config.json", "r") as f:
-    text = f.read()
-target = """    {
-      "protocol": "freedom",
-      "settings": {},
-      "tag": "direct"
-    }"""
-replacement = """    {
-      "protocol": "socks",
-      "settings": {
-        "servers": [
-          {
-            "address": "127.0.0.1",
-            "port": 40000
-          }
-        ]
-      },
-      "tag": "direct"
-    }"""
-if target in text:
-    with open("/usr/local/etc/v2ray/config.json", "w") as f:
-        f.write(text.replace(target, replacement))
+import re
+path = "/usr/local/etc/v2ray/config.json"
+try:
+    with open(path, "r") as f:
+        text = f.read()
+    pattern = r"\{\s*\"protocol\"\s*:\s*\"freedom\"\s*,\s*\"settings\"\s*:\s*\{\s*\}\s*,\s*\"tag\"\s*:\s*\"direct\"\s*\}"
+    replacement = "{\n      \"protocol\": \"socks\",\n      \"settings\": {\n        \"servers\": [\n          {\n            \"address\": \"127.0.0.1\",\n            \"port\": 40000\n          }\n        ]\n      },\n      \"tag\": \"direct\"\n    }"
+    new_text, count = re.subn(pattern, replacement, text)
+    if count > 0:
+        with open(path, "w") as f:
+            f.write(new_text)
+except Exception as e:
+    print("Error:", e)
 '
     fi
     
