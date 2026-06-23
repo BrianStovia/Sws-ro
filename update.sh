@@ -164,7 +164,7 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     
     # Verify configuration syntax
     if [ -f "/usr/local/bin/xray" ]; then
-        /usr/local/bin/xray test -config /usr/local/etc/v2ray/config.json &>/dev/null
+        /usr/local/bin/xray -test -config /usr/local/etc/v2ray/config.json &>/dev/null
         if [ $? -ne 0 ]; then
             echo -e "${red}Error: Konfigurasi baru V2Ray tidak valid! Mengembalikan ke konfigurasi sebelumnya...${NC}"
             cp /usr/local/etc/v2ray/config.json.bak /usr/local/etc/v2ray/config.json
