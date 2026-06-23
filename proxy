@@ -47,7 +47,7 @@ PASS = ''
 
 # CONST
 BUFLEN = 4096 * 4
-TIMEOUT = 60
+TIMEOUT = 3600
 DEFAULT_HOST = '127.0.0.1:109'
 RESPONSE = b'HTTP/1.1 101 <b><i><font color="blue">BrianStovia</font></b> Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: foo\r\n\r\n'
 
@@ -164,6 +164,7 @@ class ConnectionHandler(threading.Thread):
     def run(self):
         try:
             self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
             
             # Read initial buffer
             self.client.settimeout(1.0)
@@ -363,6 +364,7 @@ class ConnectionHandler(threading.Thread):
         port = int(port) if port else 443
         self.target = socket.create_connection((host, port))
         self.target.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.target.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.targetClosed = False
 
     def doCONNECT(self, ssh_established=False):
