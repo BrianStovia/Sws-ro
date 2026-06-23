@@ -241,7 +241,7 @@ class ConnectionHandler(threading.Thread):
                 path = ''
                 if len(first_line_parts) >= 2:
                     path = first_line_parts[1].lower()
-                for v_path in ['/vmess', '/vless', '/trojan', '/noobz', '/api']:
+                for v_path in ['/vmess', '/vless', '/trojan', '/noobz', '/api', '/netdata']:
                     if path.startswith(v_path):
                         is_v2ray = True
                         break
