@@ -177,6 +177,7 @@
         "grpcSettings": {
           "serviceName": "trojan-grpc"
         }
+      }
     }
   ],
   "outbounds": [
