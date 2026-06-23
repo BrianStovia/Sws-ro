@@ -100,6 +100,13 @@ if ! free | grep -i swap | awk '{print $2}' | grep -q '[1-9]'; then
     echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 fi
 
+# Optimize network card transmission queue length to prevent packet loss
+primary_interface=$(ip route | grep default | awk '{print $5}')
+if [ -n "$primary_interface" ]; then
+    echo "Optimizing network card queue length for ${primary_interface}..."
+    ip link set dev $primary_interface txqueuelen 10000 &>/dev/null
+fi
+
 # Network & TCP Speed Optimization (BBR)
 sysctl_optimize() {
     local key="$1"
@@ -127,6 +134,9 @@ sysctl_optimize "net.ipv4.tcp_keepalive_intvl" "15"
 sysctl_optimize "net.ipv4.tcp_max_syn_backlog" "8192"
 sysctl_optimize "net.ipv4.tcp_max_tw_buckets" "1440000"
 sysctl_optimize "net.ipv4.tcp_tw_reuse" "1"
+sysctl_optimize "net.core.netdev_max_backlog" "10000"
+sysctl_optimize "net.ipv4.udp_rmem_min" "8192"
+sysctl_optimize "net.ipv4.udp_wmem_min" "8192"
 sysctl -p
 mkdir -p /etc/sysctl.d
 cat > /etc/sysctl.d/99-vpn.conf << EOF
@@ -148,6 +158,9 @@ net.ipv4.tcp_keepalive_intvl = 15
 net.ipv4.tcp_max_syn_backlog = 8192
 net.ipv4.tcp_max_tw_buckets = 1440000
 net.ipv4.tcp_tw_reuse = 1
+net.core.netdev_max_backlog = 10000
+net.ipv4.udp_rmem_min = 8192
+net.ipv4.udp_wmem_min = 8192
 EOF
 sysctl --system
 
@@ -422,6 +435,7 @@ After=syslog.target network-online.target
 [Service]
 User=root
 NoNewPrivileges=true
+Nice=-20
 ExecStart=/usr/local/bin/badvpn --listen-addr 127.0.0.1:7100 --max-clients 1000 --max-connections-for-client 1000 --client-socket-sndbuf 0 --udp-mtu 9000
 Restart=on-failure
 RestartPreventExitStatus=23
@@ -439,6 +453,7 @@ After=syslog.target network-online.target
 [Service]
 User=root
 NoNewPrivileges=true
+Nice=-20
 ExecStart=/usr/local/bin/badvpn --listen-addr 127.0.0.1:7200 --max-clients 1000 --max-connections-for-client 1000 --client-socket-sndbuf 0 --udp-mtu 9000
 Restart=on-failure
 RestartPreventExitStatus=23
@@ -456,6 +471,7 @@ After=syslog.target network-online.target
 [Service]
 User=root
 NoNewPrivileges=true
+Nice=-20
 ExecStart=/usr/local/bin/badvpn --listen-addr 127.0.0.1:7300 --max-clients 1000 --max-connections-for-client 1000 --client-socket-sndbuf 0 --udp-mtu 9000
 Restart=on-failure
 RestartPreventExitStatus=23
@@ -503,6 +519,7 @@ Description=UDP Custom by ePro Dev. Team and modify by FN Project
 [Service]
 User=root
 Type=simple
+Nice=-20
 ExecStart=/etc/udp/udp-custom server --config /etc/udp/config.json --exclude 7300,51820
 WorkingDirectory=/etc/udp/
 Restart=always
