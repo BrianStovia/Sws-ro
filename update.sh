@@ -83,6 +83,46 @@ echo -e "${blue}[4/6] Memperbarui file konfigurasi...${NC}"
 get_file "udp.json" "/etc/udp/config.json"
 chmod 644 /etc/udp/config.json
 
+# Install speedtest-cli if missing
+if ! command -v speedtest-cli &> /dev/null && ! command -v speedtest &> /dev/null; then
+    echo -e "${blue}Menginstal speedtest-cli...${NC}"
+    apt-get update &>/dev/null
+    apt-get install -y speedtest-cli &>/dev/null
+fi
+
+# Install netdata if missing
+if ! command -v netdata &> /dev/null; then
+    echo -e "${blue}Menginstal Netdata Web Dashboard...${NC}"
+    wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --non-interactive --disable-telemetry || true
+    
+    # Configure Netdata to bind only to 127.0.0.1
+    if [ -f "/etc/netdata/netdata.conf" ]; then
+        if grep -q "\[web\]" /etc/netdata/netdata.conf; then
+            sed -i '/\[web\]/a \    bind to = 127.0.0.1' /etc/netdata/netdata.conf
+        else
+            echo -e "\n[web]\n    bind to = 127.0.0.1" >> /etc/netdata/netdata.conf
+        fi
+    fi
+fi
+
+# Ensure Nginx Netdata configuration is added
+if [ -f "/etc/nginx/nginx.conf" ] && ! grep -q "location /netdata/" /etc/nginx/nginx.conf; then
+    echo -e "${blue}Menambahkan konfigurasi Netdata ke Nginx...${NC}"
+    sed -i '/# ----- Rest API -----/i \        # ----- Netdata Dashboard -----\n        location = /netdata {\n            return 301 /netdata/;\n        }\n        location /netdata/ {\n            auth_basic "Netdata Dashboard Login";\n            auth_basic_user_file /etc/nginx/.htpasswd;\n            proxy_pass http://127.0.0.1:19999/;\n            proxy_set_header Host $host;\n            proxy_set_header X-Forwarded-Host $host;\n            proxy_set_header X-Forwarded-Server $host;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_http_version 1.1;\n            proxy_pass_request_headers on;\n            proxy_set_header Connection "keep-alive";\n            store_gzipped on;\n        }\n' /etc/nginx/nginx.conf
+fi
+
+# Ensure Netdata Basic Auth password file exists
+if [ ! -f "/etc/nginx/.htpasswd" ]; then
+    if [ -f "/usr/local/etc/v2ray/domain" ]; then
+        domain=$(cat /usr/local/etc/v2ray/domain)
+    else
+        domain="domain"
+    fi
+    netdata_pass="admin$(echo "$domain" | tr -d '.')"
+    pass_hash=$(openssl passwd -1 "$netdata_pass")
+    echo "admin:$pass_hash" > /etc/nginx/.htpasswd
+fi
+
 # Update Xray config.json
 if [ -f "/usr/local/etc/v2ray/config.json" ]; then
     # Backup existing config
@@ -136,6 +176,15 @@ systemctl restart sslh &>/dev/null
 systemctl restart proxy &>/dev/null
 systemctl restart server &>/dev/null
 systemctl restart cron &>/dev/null
+systemctl restart netdata &>/dev/null
+
+# Update Telegram bot if installed
+if [ -f "/etc/systemd/system/vpn-bot.service" ]; then
+    echo -e "${blue}Memperbarui & me-restart Telegram Bot Panel...${NC}"
+    cp /usr/local/sbin/vpn_telegram_bot.py /usr/bin/vpn_telegram_bot.py 2>/dev/null
+    chmod +x /usr/bin/vpn_telegram_bot.py
+    systemctl restart vpn-bot &>/dev/null
+fi
 
 # 6. Self Update update.sh
 echo -e "${blue}[6/6] Memperbarui script update...${NC}"

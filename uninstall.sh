@@ -21,6 +21,7 @@ echo -e "${yellow}━━━━━━━━━━━━━━━━━━━━�
 # 1. Stop and Disable Services
 services=(
     "vpn-bot"
+    "netdata"
     "server"
     "proxy"
     "udp-custom"
@@ -175,6 +176,16 @@ for folder in "${folders[@]}"; do
     fi
 done
 
+# Run Netdata uninstaller if present
+if [ -f "/usr/libexec/netdata/netdata-uninstaller.sh" ]; then
+    echo "  - Menjalankan Netdata uninstaller..."
+    /usr/libexec/netdata/netdata-uninstaller.sh --yes --force &>/dev/null || true
+elif [ -f "/etc/netdata/netdata-uninstaller.sh" ]; then
+    echo "  - Menjalankan Netdata uninstaller..."
+    /etc/netdata/netdata-uninstaller.sh --yes --force &>/dev/null || true
+fi
+rm -rf /etc/netdata /var/lib/netdata /var/log/netdata /usr/share/netdata /etc/nginx/.htpasswd
+
 files=(
     "/usr/bin/server"
     "/usr/local/bin/proxy"
@@ -203,7 +214,7 @@ done
 
 # 8. Purge installed packages (Optional, keeps core packages to avoid breaking dependencies)
 echo -e "${blue}[8/8] Menghapus paket yang terpasang...${NC}"
-apt-get purge -y sslh dropbear dante-server microsocks stunnel4 squid &>/dev/null
+apt-get purge -y sslh dropbear dante-server microsocks stunnel4 squid netdata speedtest-cli &>/dev/null
 apt-get autoremove -y &>/dev/null
 
 echo -e "${yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

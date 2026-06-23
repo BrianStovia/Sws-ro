@@ -195,6 +195,7 @@ apt install python3 python3-pip -y
 apt install zip -y
 apt install unzip -y
 apt install bc -y
+apt install speedtest-cli -y
 
 # Ensure standard systemd system users exist to prevent 217/USER boot failures
 for sys_user in systemd-network systemd-resolve systemd-timesync; do
@@ -947,6 +948,27 @@ systemctl daemon-reload
 systemctl enable wg-quick@wg0
 systemctl restart wg-quick@wg0
 
+# Setup Netdata Web Dashboard
+echo "Installing Netdata Web Dashboard Monitoring..."
+if ! command -v netdata &> /dev/null; then
+    wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --non-interactive --disable-telemetry || true
+fi
+
+# Configure Netdata to bind only to 127.0.0.1
+if [ -f "/etc/netdata/netdata.conf" ]; then
+    if grep -q "\[web\]" /etc/netdata/netdata.conf; then
+        sed -i '/\[web\]/a \    bind to = 127.0.0.1' /etc/netdata/netdata.conf
+    else
+        echo -e "\n[web]\n    bind to = 127.0.0.1" >> /etc/netdata/netdata.conf
+    fi
+    systemctl restart netdata || true
+fi
+
+# Setup Netdata Password Basic Authentication
+netdata_pass="admin$(echo "$domain" | tr -d '.')"
+pass_hash=$(openssl passwd -1 "$netdata_pass")
+echo "admin:$pass_hash" > /etc/nginx/.htpasswd
+systemctl restart nginx || true
 
 clear
 # rm -f /root/* # Disabled to protect local files and workspace from accidental deletion
@@ -959,5 +981,8 @@ echo -e "          Success Install          "
 echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e " SlowDNS Nameserver : ns.${domain}"
 echo -e " SlowDNS Public Key : ${pub_key}"
+echo -e " Web Dashboard      : https://${domain}/netdata/"
+echo -e " Dashboard User     : admin"
+echo -e " Dashboard Pass     : ${netdata_pass}"
 echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 exit 0
