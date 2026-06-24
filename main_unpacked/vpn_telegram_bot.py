@@ -85,7 +85,6 @@ def set_bot_commands():
     commands = [
         {"command": "menu", "description": "Tampilkan Menu Utama"},
         {"command": "ssh", "description": "Menu SSH & OVPN"},
-        {"command": "noobz", "description": "Menu NoobzVPN"},
         {"command": "vmess", "description": "Menu Vmess"},
         {"command": "vless", "description": "Menu Vless"},
         {"command": "trojan", "description": "Menu Trojan"},
@@ -191,13 +190,11 @@ def send_menu(chat_id):
 
     # Total Accounts
     shc = run_bash_cmd("awk -F: '$3 >= 1000 && $1 != \"nobody\" {print $1}' /etc/passwd | wc -l")
-    noobzd = run_bash_cmd("cat /etc/noobzvpns/.noobz.db | sort | uniq | wc -l")
     trojan = run_bash_cmd("cat /usr/local/etc/v2ray/config.json | grep '#!' | sort | uniq | wc -l")
     vless = run_bash_cmd("cat /usr/local/etc/v2ray/config.json | grep '#&' | sort | uniq | wc -l")
     vmess = run_bash_cmd("cat /usr/local/etc/v2ray/config.json | grep '###' | sort | uniq | wc -l")
 
     # Services
-    snoobz = check_service_status("noobzvpns")
     sv2ray = check_service_status("v2ray")
     snginx = check_service_status("nginx")
     sslh = check_service_status("sslh")
@@ -219,7 +216,6 @@ def send_menu(chat_id):
         "───────────────────────\n"
         "<b>Total Account:</b>\n"
         f"• SSH        : {shc}\n"
-        f"• Noobz VPN  : {noobzd}\n"
         f"• Vmess      : {vmess}\n"
         f"• Vless      : {vless}\n"
         f"• Trojan     : {trojan}\n"
@@ -232,8 +228,7 @@ def send_menu(chat_id):
         "• UDP Custom            : 1-65535 & 36712\n"
         "• SlowDNS               : 53\n"
         "───────────────────────\n"
-        f"NoobzVPN: {snoobz}   V2ray: {sv2ray}\n"
-        f"Nginx: {snginx}   SSLH: {sslh}\n"
+        f"V2ray: {sv2ray}   Nginx: {snginx}   SSLH: {sslh}\n"
         "───────────────────────\n"
         "Silakan pilih opsi menu di bawah ini:"
     )
@@ -241,18 +236,17 @@ def send_menu(chat_id):
         "inline_keyboard": [
             [
                 {"text": "🔑 SSH Menu", "callback_data": "/menu_ssh"},
-                {"text": "🌐 NoobzVPN Menu", "callback_data": "/menu_noobz"}
+                {"text": "🛡️ Vmess Menu", "callback_data": "/menu_vmess"}
             ],
             [
-                {"text": "🛡️ Vmess Menu", "callback_data": "/menu_vmess"},
-                {"text": "⚡ Vless Menu", "callback_data": "/menu_vless"}
+                {"text": "⚡ Vless Menu", "callback_data": "/menu_vless"},
+                {"text": "🔒 Trojan Menu", "callback_data": "/menu_trojan"}
             ],
             [
-                {"text": "🔒 Trojan Menu", "callback_data": "/menu_trojan"},
-                {"text": "📡 Wireguard Menu", "callback_data": "/menu_wg"}
+                {"text": "📡 Wireguard Menu", "callback_data": "/menu_wg"},
+                {"text": "⚙️ System Menu", "callback_data": "/menu_system"}
             ],
             [
-                {"text": "⚙️ System Menu", "callback_data": "/menu_system"},
                 {"text": "🔄 Update Script", "callback_data": "/update_script"}
             ]
         ]
@@ -273,26 +267,6 @@ def send_menu_ssh(chat_id):
             ],
             [
                 {"text": "🔍 Check Login", "callback_data": "/cekssh"},
-                {"text": "⬅️ Back", "callback_data": "/menu"}
-            ]
-        ]
-    }
-    send_message(chat_id, text, reply_markup=json.dumps(keyboard))
-
-def send_menu_noobz(chat_id):
-    text = "🌐 <b>NOOBZVPN PANEL</b> 🌐\n───────────────────────"
-    keyboard = {
-        "inline_keyboard": [
-            [
-                {"text": "➕ Create Noobz", "callback_data": "/addnoobz"},
-                {"text": "❌ Delete Noobz", "callback_data": "/delnoobz"}
-            ],
-            [
-                {"text": "🔄 Renew Noobz", "callback_data": "/renewnoobz"},
-                {"text": "👥 List Noobz", "callback_data": "/listnoobz"}
-            ],
-            [
-                {"text": "🔍 Check Login", "callback_data": "/ceknoobz"},
                 {"text": "⬅️ Back", "callback_data": "/menu"}
             ]
         ]
@@ -477,45 +451,6 @@ def handle_state_input(chat_id, text):
             out = run_bash_cmd(cmd_str)
             send_message(chat_id, f"<pre>{out}</pre>")
             
-    elif action == "addnoobz":
-        if step == "username":
-            username = text.strip()
-            if not re.match(r'^[a-zA-Z0-9_]+$', username):
-                send_message(chat_id, "❌ Username hanya boleh huruf, angka, dan underscore (_).\n\nMasukkan kembali Username:")
-                return
-            state["data"]["username"] = username
-            state["step"] = "device"
-            send_message(chat_id, "💻 Masukkan Limit Device (contoh: 2):")
-        elif step == "device":
-            device = text.strip()
-            if not device.isdigit() or int(device) <= 0:
-                send_message(chat_id, "❌ Limit device harus berupa angka positif.\n\nMasukkan kembali Limit Device:")
-                return
-            state["data"]["device"] = device
-            state["step"] = "bw"
-            send_message(chat_id, "📊 Masukkan Bandwidth Limit (GB) (0 untuk no limit, contoh: 100):")
-        elif step == "bw":
-            bw = text.strip()
-            if not bw.isdigit():
-                send_message(chat_id, "❌ Bandwidth harus berupa angka.\n\nMasukkan kembali Bandwidth Limit (GB):")
-                return
-            state["data"]["bw"] = bw
-            state["step"] = "days"
-            send_message(chat_id, "📆 Masukkan Masa Aktif (Hari) (contoh: 30):")
-        elif step == "days":
-            days = text.strip()
-            if not days.isdigit() or int(days) <= 0:
-                send_message(chat_id, "❌ Masa aktif harus berupa angka positif.\n\nMasukkan kembali Masa Aktif (Hari):")
-                return
-            username = state["data"]["username"]
-            device = state["data"]["device"]
-            bw = state["data"]["bw"]
-            if chat_id in user_states:
-                del user_states[chat_id]
-            send_message(chat_id, f"⏳ Sedang membuat akun NoobzVPN untuk <code>{username}</code>...")
-            cmd_str = f'printf "{username}\\n{device}\\n{bw}\\n{days}\\n" | bash /usr/local/sbin/add-noobz'
-            out = run_bash_cmd(cmd_str)
-            send_message(chat_id, f"<pre>{out}</pre>")
 
     elif action == "addwg":
         if step == "username":
@@ -570,8 +505,6 @@ def handle_state_input(chat_id, text):
             cmd_str = f'printf "{username}\\n" | bash /usr/local/sbin/del-tr'
         elif proto == "wg":
             cmd_str = f'printf "{username}\\n" | bash /usr/local/sbin/del-wg'
-        elif proto == "noobz":
-            cmd_str = f'noobzvpns remove "{username}" && sed -i "/^#noobzvpns# {username} /d" /etc/noobzvpns/.noobz.db'
         out = run_bash_cmd(cmd_str)
         send_message(chat_id, f"<pre>{out}</pre>")
 
@@ -580,16 +513,8 @@ def handle_state_input(chat_id, text):
         if step == "username":
             username = text.strip()
             state["data"]["username"] = username
-            if proto == "noobz":
-                if chat_id in user_states:
-                    del user_states[chat_id]
-                send_message(chat_id, f"⏳ Sedang memperpanjang akun NoobzVPN untuk <code>{username}</code>...")
-                cmd_str = f'noobzvpns renew "{username}"'
-                out = run_bash_cmd(cmd_str)
-                send_message(chat_id, f"<pre>{out}</pre>")
-            else:
-                state["step"] = "days"
-                send_message(chat_id, "📆 Masukkan Jumlah Hari Perpanjangan:")
+            state["step"] = "days"
+            send_message(chat_id, "📆 Masukkan Jumlah Hari Perpanjangan:")
         elif step == "days":
             days = text.strip()
             if not days.isdigit() or int(days) <= 0:
@@ -631,9 +556,6 @@ def handle_command(chat_id, text):
     if cmd == "/ssh" or cmd == "/menu_ssh":
         send_menu_ssh(chat_id)
         return
-    elif cmd == "/noobz" or cmd == "/menu_noobz":
-        send_menu_noobz(chat_id)
-        return
     elif cmd == "/vmess" or cmd == "/menu_vmess":
         send_menu_vmess(chat_id)
         return
@@ -659,7 +581,6 @@ def handle_command(chat_id, text):
             "───────────────────────\n"
             "Gunakan tombol menu atau ketik perintah ini:\n"
             "• <code>/ssh</code> - Menu SSH & OVPN\n"
-            "• <code>/noobz</code> - Menu NoobzVPN\n"
             "• <code>/vmess</code> - Menu XRAY Vmess\n"
             "• <code>/vless</code> - Menu XRAY Vless\n"
             "• <code>/trojan</code> - Menu XRAY Trojan\n"
@@ -698,10 +619,6 @@ def handle_command(chat_id, text):
         user_states[chat_id] = {"action": "addtrojan", "step": "username", "data": {}}
         send_message(chat_id, "➕ <b>Pembuatan Akun Trojan</b>\n\nMasukkan Username:\n(Ketik /cancel untuk membatalkan)")
         
-    elif cmd == "/addnoobz":
-        user_states[chat_id] = {"action": "addnoobz", "step": "username", "data": {}}
-        send_message(chat_id, "➕ <b>Pembuatan Akun NoobzVPN</b>\n\nMasukkan Username:\n(Ketik /cancel untuk membatalkan)")
-
     elif cmd == "/addwg":
         user_states[chat_id] = {"action": "addwg", "step": "username", "data": {}}
         send_message(chat_id, "➕ <b>Pembuatan Akun WireGuard</b>\n\nMasukkan Username:\n(Ketik /cancel untuk membatalkan)")
@@ -711,13 +628,13 @@ def handle_command(chat_id, text):
         send_message(chat_id, "🌐 <b>Ganti Domain VPS</b>\n\nMasukkan Domain Baru:\n(Ketik /cancel untuk membatalkan)")
 
     # Deletions
-    elif cmd in ["/delssh", "/delvmess", "/delvless", "/deltrojan", "/delwg", "/delnoobz"]:
+    elif cmd in ["/delssh", "/delvmess", "/delvless", "/deltrojan", "/delwg"]:
         proto = cmd[4:]
         user_states[chat_id] = {"action": f"del_{proto}", "step": "username", "data": {}}
         send_message(chat_id, f"❌ <b>Hapus Akun {proto.upper()}</b>\n\nMasukkan Username:\n(Ketik /cancel untuk membatalkan)")
 
     # Renewals
-    elif cmd in ["/renewssh", "/renewvmess", "/renewvless", "/renewtrojan", "/renewwg", "/renewnoobz"]:
+    elif cmd in ["/renewssh", "/renewvmess", "/renewvless", "/renewtrojan", "/renewwg"]:
         proto = cmd[6:]
         user_states[chat_id] = {"action": f"renew_{proto}", "step": "username", "data": {}}
         send_message(chat_id, f"🔄 <b>Perpanjang Akun {proto.upper()}</b>\n\nMasukkan Username:\n(Ketik /cancel untuk membatalkan)")
@@ -731,7 +648,6 @@ def handle_command(chat_id, text):
         v2ray_st = get_service_status("v2ray")
         nginx_st = get_service_status("nginx")
         sslh_st = get_service_status("sslh")
-        noobz_st = get_service_status("noobzvpns")
         udp_st = get_service_status("udp-custom")
         proxy_st = get_service_status("proxy")
         
@@ -752,7 +668,6 @@ def handle_command(chat_id, text):
             f"• <b>V2Ray Core  :</b> {v2ray_st}\n"
             f"• <b>Nginx Server :</b> {nginx_st}\n"
             f"• <b>SSLH Proxy   :</b> {sslh_st}\n"
-            f"• <b>NoobzVPN     :</b> {noobz_st}\n"
             f"• <b>UDP Custom   :</b> {udp_st}\n"
             f"• <b>Proxy SSHWS  :</b> {proxy_st}\n"
             "───────────────────────\n"
@@ -763,20 +678,11 @@ def handle_command(chat_id, text):
         send_message(chat_id, "⏳ Mengambil daftar akun SSH...")
         out = run_bash_cmd("awk -F: '$3 >= 1000 && $1 != \"nobody\" {print $1}' /etc/passwd")
         send_message(chat_id, f"👥 <b>Daftar Akun SSH Aktif:</b>\n<pre>{out if out else 'Tidak ada akun'}</pre>")
-        
-    elif cmd == "/listnoobz":
-        send_message(chat_id, "⏳ Mengambil daftar akun NoobzVPN...")
-        out = run_bash_cmd("noobzvpns print-all | grep -E '^[0-9]+\\.'")
-        send_message(chat_id, f"👥 <b>Daftar Akun NoobzVPN Aktif:</b>\n<pre>{out if out else 'Tidak ada akun'}</pre>")
 
     # Checks & Logins
     elif cmd == "/cekssh":
         send_message(chat_id, "⏳ Memeriksa login SSH...")
         out = run_bash_cmd("bash /usr/local/sbin/cek-ssh")
-        send_message(chat_id, f"<pre>{out if out else 'Tidak ada log login'}</pre>")
-    elif cmd == "/ceknoobz":
-        send_message(chat_id, "⏳ Memeriksa login NoobzVPN...")
-        out = run_bash_cmd("bash /usr/local/sbin/cek-login-noobz")
         send_message(chat_id, f"<pre>{out if out else 'Tidak ada log login'}</pre>")
     elif cmd == "/cekvmess":
         send_message(chat_id, "⏳ Memeriksa login Vmess...")
