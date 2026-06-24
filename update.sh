@@ -125,6 +125,10 @@ if [ -f "/etc/nginx/nginx.conf" ]; then
     # Enable HTTP/2 on port 1013 to support gRPC and prevent protocol errors
     sed -i 's/listen 1013 ssl reuseport/listen 1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
     sed -i 's/listen \[::\]:1013 ssl reuseport/listen \[::\]:1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
+    # Add WebSocket/gRPC proxy optimizations if not present
+    if ! grep -q "proxy_buffering off;" /etc/nginx/nginx.conf; then
+        sed -i '/server_name/a \        # ===== Optimizations for WebSockets and gRPC =====\n        proxy_buffering off;\n        proxy_read_timeout 360s;\n        proxy_send_timeout 360s;\n        client_max_body_size 0;' /etc/nginx/nginx.conf
+    fi
 fi
 
 # Ensure Nginx Netdata configuration is added
