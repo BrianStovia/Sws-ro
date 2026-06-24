@@ -93,6 +93,10 @@ echo -e "${blue}[5/7] Memperbarui file konfigurasi...${NC}"
 get_file "udp.json" "/etc/udp/config.json"
 chmod 644 /etc/udp/config.json
 
+# Update SSLH configuration for high performance TLS routing
+get_file "sslh" "/etc/default/sslh"
+chmod 755 /etc/default/sslh
+
 # Install speedtest-cli if missing
 if ! command -v speedtest-cli &> /dev/null && ! command -v speedtest &> /dev/null; then
     echo -e "${blue}Menginstal speedtest-cli...${NC}"
