@@ -138,8 +138,6 @@ sysctl_optimize "net.ipv4.tcp_tw_reuse" "1"
 sysctl_optimize "net.core.netdev_max_backlog" "10000"
 sysctl_optimize "net.ipv4.udp_rmem_min" "8192"
 sysctl_optimize "net.ipv4.udp_wmem_min" "8192"
-sysctl_optimize "net.core.somaxconn" "32768"
-sysctl_optimize "net.ipv4.udp_mem" "114112 152152 228224"
 sysctl -p
 mkdir -p /etc/sysctl.d
 cat > /etc/sysctl.d/99-vpn.conf << EOF
