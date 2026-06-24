@@ -119,22 +119,15 @@ if ! command -v netdata &> /dev/null; then
     fi
 fi
 
-# Clean up any leftover broken store_gzipped directives from previous runs
+# Update Nginx configuration while preserving server name (domain)
 if [ -f "/etc/nginx/nginx.conf" ]; then
-    sed -i '/store_gzipped on;/d' /etc/nginx/nginx.conf
-    # Enable HTTP/2 on port 1013 to support gRPC and prevent protocol errors
-    sed -i 's/listen 1013 ssl reuseport/listen 1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
-    sed -i 's/listen \[::\]:1013 ssl reuseport/listen \[::\]:1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
-    # Add WebSocket/gRPC proxy optimizations if not present
-    if ! grep -q "proxy_buffering off;" /etc/nginx/nginx.conf; then
-        sed -i '/server_name/a \        # ===== Optimizations for WebSockets and gRPC =====\n        proxy_buffering off;\n        proxy_read_timeout 360s;\n        proxy_send_timeout 360s;\n        client_max_body_size 0;' /etc/nginx/nginx.conf
+    if [ -f "/usr/local/etc/v2ray/domain" ]; then
+        domain=$(cat /usr/local/etc/v2ray/domain)
+    else
+        domain="domain"
     fi
-fi
-
-# Ensure Nginx Netdata configuration is added
-if [ -f "/etc/nginx/nginx.conf" ] && ! grep -q "location /netdata/" /etc/nginx/nginx.conf; then
-    echo -e "${blue}Menambahkan konfigurasi Netdata ke Nginx...${NC}"
-    sed -i '/# ----- Rest API -----/i \        # ----- Netdata Dashboard -----\n        location = /netdata {\n            return 301 /netdata/;\n        }\n        location /netdata/ {\n            auth_basic "Netdata Dashboard Login";\n            auth_basic_user_file /etc/nginx/.htpasswd;\n            proxy_pass http://127.0.0.1:19999/;\n            proxy_set_header Host $host;\n            proxy_set_header X-Forwarded-Host $host;\n            proxy_set_header X-Forwarded-Server $host;\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_http_version 1.1;\n            proxy_pass_request_headers on;\n            proxy_set_header Connection "keep-alive";\n        }\n' /etc/nginx/nginx.conf
+    get_file "nginx.conf" "/etc/nginx/nginx.conf"
+    sed -i "s|server_name .*;|server_name $domain;|" /etc/nginx/nginx.conf
 fi
 
 # Ensure Netdata Basic Auth password file exists
