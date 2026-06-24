@@ -49,7 +49,7 @@ PASS = ''
 BUFLEN = 4096 * 4
 TIMEOUT = 3600
 DEFAULT_HOST = '127.0.0.1:109'
-RESPONSE = b'HTTP/1.1 101 <b><i><font color="blue">BrianStovia</font></b> Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: foo\r\n\r\n'
+RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: foo\r\n\r\n'
 
 class Server(threading.Thread):
     def __init__(self, host, port, use_ssl=False):
@@ -296,7 +296,7 @@ class ConnectionHandler(threading.Thread):
                             magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
                             accept_val = base64.b64encode(hashlib.sha1((sec_ws_key + magic).encode()).digest()).decode()
                             dyn_response = (
-                                b'HTTP/1.1 101 <b><i><font color="blue">Rerechan02</font></b> Switching Protocols\r\n'
+                                b'HTTP/1.1 101 Switching Protocols\r\n'
                                 b'Upgrade: websocket\r\n'
                                 b'Connection: Upgrade\r\n'
                                 b'Server: rbstv-Proxy\r\n'
