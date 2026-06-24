@@ -219,7 +219,7 @@ class ConnectionHandler(threading.Thread):
                     self.client.settimeout(TIMEOUT)
             
             # Determine if request uses CONNECT method
-            is_connect = b'connect' in self.client_buffer.lower()
+            is_connect = self.client_buffer.lower().startswith(b'connect')
             
             # Parse request_host if there's a CONNECT line
             request_host = ''
