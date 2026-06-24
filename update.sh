@@ -122,6 +122,9 @@ fi
 # Clean up any leftover broken store_gzipped directives from previous runs
 if [ -f "/etc/nginx/nginx.conf" ]; then
     sed -i '/store_gzipped on;/d' /etc/nginx/nginx.conf
+    # Enable HTTP/2 on port 1013 to support gRPC and prevent protocol errors
+    sed -i 's/listen 1013 ssl reuseport/listen 1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
+    sed -i 's/listen \[::\]:1013 ssl reuseport/listen \[::\]:1013 ssl http2 reuseport/g' /etc/nginx/nginx.conf
 fi
 
 # Ensure Nginx Netdata configuration is added
