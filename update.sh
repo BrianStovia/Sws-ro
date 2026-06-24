@@ -104,19 +104,11 @@ if ! command -v speedtest-cli &> /dev/null && ! command -v speedtest &> /dev/nul
     apt-get install -y speedtest-cli &>/dev/null
 fi
 
-# Install netdata if missing
-if ! command -v netdata &> /dev/null; then
-    echo -e "${blue}Menginstal Netdata Web Dashboard...${NC}"
-    wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --non-interactive --disable-telemetry || true
-    
-    # Configure Netdata to bind only to 127.0.0.1
-    if [ -f "/etc/netdata/netdata.conf" ]; then
-        if grep -q "\[web\]" /etc/netdata/netdata.conf; then
-            sed -i '/\[web\]/a \    bind to = 127.0.0.1' /etc/netdata/netdata.conf
-        else
-            echo -e "\n[web]\n    bind to = 127.0.0.1" >> /etc/netdata/netdata.conf
-        fi
-    fi
+# Disable Netdata if installed
+if command -v netdata &> /dev/null; then
+    echo -e "${blue}Menonaktifkan Netdata Web Dashboard...${NC}"
+    systemctl stop netdata &>/dev/null
+    systemctl disable netdata &>/dev/null
 fi
 
 # Update Nginx configuration while preserving server name (domain)
@@ -206,7 +198,6 @@ systemctl restart sslh &>/dev/null
 systemctl restart proxy &>/dev/null
 systemctl restart server &>/dev/null
 systemctl restart cron &>/dev/null
-systemctl restart netdata &>/dev/null
 
 # Update Telegram bot if installed
 if [ -f "/etc/systemd/system/vpn-bot.service" ]; then
