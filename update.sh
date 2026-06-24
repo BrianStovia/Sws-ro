@@ -214,8 +214,9 @@ fi
 
 # 7. Self Update update.sh
 echo -e "${blue}[7/7] Memperbarui script update...${NC}"
-get_file "update.sh" "/usr/local/sbin/update"
-chmod +x /usr/local/sbin/update
+get_file "update.sh" "/usr/local/sbin/update.tmp"
+chmod +x /usr/local/sbin/update.tmp
+mv -f /usr/local/sbin/update.tmp /usr/local/sbin/update
 ln -sf /usr/local/sbin/update /usr/bin/update
 
 echo -e "\e[33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
