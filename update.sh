@@ -171,6 +171,12 @@ fi
 
 # 6. Reload services
 echo -e "${blue}[6/7] Memulai ulang layanan...${NC}"
+# Fix missing systemd users and ensure systemd-networkd is enabled
+systemd-sysusers 2>/dev/null || true
+chmod 644 /etc/passwd /etc/group 2>/dev/null || true
+systemctl enable systemd-networkd 2>/dev/null || true
+systemctl start systemd-networkd 2>/dev/null || true
+
 systemctl daemon-reload
 systemctl restart udp-custom &>/dev/null
 systemctl restart badvpn-7100 &>/dev/null
