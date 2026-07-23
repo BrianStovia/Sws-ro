@@ -200,7 +200,8 @@ apt install unzip -y
 apt install bc -y
 apt install speedtest-cli -y
 
-# Ensure standard systemd system users exist to prevent 217/USER boot failures
+# Ensure standard systemd system users exist and have correct permissions to prevent 217/USER boot failures
+systemd-sysusers 2>/dev/null || true
 for sys_user in systemd-network systemd-resolve systemd-timesync; do
     if ! getent passwd "$sys_user" >/dev/null; then
         echo "Creating missing systemd user: $sys_user"
@@ -208,6 +209,9 @@ for sys_user in systemd-network systemd-resolve systemd-timesync; do
         useradd -r -g "$sys_user" -d /run/systemd -s /usr/sbin/nologin "$sys_user" 2>/dev/null || true
     fi
 done
+chmod 644 /etc/passwd /etc/group 2>/dev/null || true
+systemctl enable systemd-networkd 2>/dev/null || true
+systemctl start systemd-networkd 2>/dev/null || true
 
 # Setup Banner SSH
 sed -i '/^#\?Banner /c\Banner /etc/issue.net' /etc/ssh/sshd_config
