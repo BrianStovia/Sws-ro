@@ -206,6 +206,9 @@ net.ipv4.udp_mem = 114112 152152 228224
 EOF
 sysctl --system &>/dev/null || true
 
+# Update BadVPN MTU to 1380 to prevent packet fragmentation & lag spikes for gaming
+sed -i 's/--udp-mtu 9000/--udp-mtu 1380/g' /etc/systemd/system/badvpn*.service 2>/dev/null || true
+
 systemctl daemon-reload
 systemctl restart udp-custom &>/dev/null
 systemctl restart badvpn-7100 &>/dev/null
