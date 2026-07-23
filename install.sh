@@ -118,7 +118,7 @@ sysctl_optimize() {
 
 echo "Optimizing network and TCP settings..."
 sysctl_optimize "fs.file-max" "2097152"
-sysctl_optimize "net.core.default_qdisc" "fq"
+sysctl_optimize "net.core.default_qdisc" "fq_codel"
 sysctl_optimize "net.ipv4.tcp_congestion_control" "bbr"
 sysctl_optimize "net.core.rmem_max" "67108864"
 sysctl_optimize "net.core.wmem_max" "67108864"
@@ -136,13 +136,13 @@ sysctl_optimize "net.ipv4.tcp_max_syn_backlog" "8192"
 sysctl_optimize "net.ipv4.tcp_max_tw_buckets" "1440000"
 sysctl_optimize "net.ipv4.tcp_tw_reuse" "1"
 sysctl_optimize "net.core.netdev_max_backlog" "10000"
-sysctl_optimize "net.ipv4.udp_rmem_min" "8192"
-sysctl_optimize "net.ipv4.udp_wmem_min" "8192"
+sysctl_optimize "net.ipv4.udp_rmem_min" "16384"
+sysctl_optimize "net.ipv4.udp_wmem_min" "16384"
 sysctl -p
 mkdir -p /etc/sysctl.d
 cat > /etc/sysctl.d/99-vpn.conf << EOF
 fs.file-max = 2097152
-net.core.default_qdisc = fq
+net.core.default_qdisc = fq_codel
 net.ipv4.tcp_congestion_control = bbr
 net.core.rmem_max = 67108864
 net.core.wmem_max = 67108864
@@ -160,8 +160,8 @@ net.ipv4.tcp_max_syn_backlog = 8192
 net.ipv4.tcp_max_tw_buckets = 1440000
 net.ipv4.tcp_tw_reuse = 1
 net.core.netdev_max_backlog = 10000
-net.ipv4.udp_rmem_min = 8192
-net.ipv4.udp_wmem_min = 8192
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
 net.core.somaxconn = 32768
 net.ipv4.udp_mem = 114112 152152 228224
 EOF

@@ -170,12 +170,41 @@ if [ -f "/usr/local/etc/v2ray/config.json" ]; then
 fi
 
 # 6. Reload services
-echo -e "${blue}[6/7] Memulai ulang layanan...${NC}"
+echo -e "${blue}[6/7] Memulai ulang layanan & optimasi jaringan...${NC}"
 # Fix missing systemd users and ensure systemd-networkd is enabled
 systemd-sysusers 2>/dev/null || true
 chmod 644 /etc/passwd /etc/group 2>/dev/null || true
 systemctl enable systemd-networkd 2>/dev/null || true
 systemctl start systemd-networkd 2>/dev/null || true
+
+# Apply network kernel optimization for low latency gaming & bufferbloat control
+mkdir -p /etc/sysctl.d
+cat > /etc/sysctl.d/99-vpn.conf << EOF
+fs.file-max = 2097152
+net.core.default_qdisc = fq_codel
+net.ipv4.tcp_congestion_control = bbr
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.core.rmem_default = 33554432
+net.core.wmem_default = 33554432
+net.core.optmem_max = 2048576
+net.ipv4.tcp_rmem = 4096 87380 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_intvl = 15
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_max_tw_buckets = 1440000
+net.ipv4.tcp_tw_reuse = 1
+net.core.netdev_max_backlog = 10000
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
+net.core.somaxconn = 32768
+net.ipv4.udp_mem = 114112 152152 228224
+EOF
+sysctl --system &>/dev/null || true
 
 systemctl daemon-reload
 systemctl restart udp-custom &>/dev/null
