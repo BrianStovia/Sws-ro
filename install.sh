@@ -549,6 +549,10 @@ echo -e "
 * * * * * root /usr/local/sbin/v2ray-watchdog
 " >> /etc/crontab
 
+# Setup default Auto-Reboot Cron (04:00 AM daily)
+echo "0 4 * * * root /sbin/reboot" > /etc/cron.d/auto-reboot
+systemctl restart cron &>/dev/null
+
 # Setup V2Ray/Nginx Watchdog
 cat > /usr/local/sbin/v2ray-watchdog << 'EOF'
 #!/usr/bin/env bash

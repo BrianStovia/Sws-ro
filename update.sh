@@ -93,6 +93,9 @@ echo -e "${blue}[5/7] Memperbarui file konfigurasi...${NC}"
 get_file "udp.json" "/etc/udp/config.json"
 chmod 644 /etc/udp/config.json
 
+# Update SSH Banner
+get_file "issue.net" "/etc/issue.net"
+
 # Update SSLH configuration for high performance TLS routing
 get_file "sslh" "/etc/default/sslh"
 chmod 755 /etc/default/sslh
